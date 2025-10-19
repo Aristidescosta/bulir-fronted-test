@@ -1,6 +1,5 @@
-'use client';
-
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
 
 interface RegisterAlertsProps {
     error?: string;
@@ -8,19 +7,25 @@ interface RegisterAlertsProps {
 }
 
 export function RegisterAlerts({ error, success }: RegisterAlertsProps) {
+    if (!error && !success) return null;
+
     return (
-        <>
+        <div className="mb-4">
             {error && (
-                <Alert variant="destructive" className="mb-4">
+                <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Erro</AlertTitle>
                     <AlertDescription>{error}</AlertDescription>
                 </Alert>
             )}
 
             {success && (
-                <Alert className="mb-4 border-green-500 bg-green-50">
-                    <AlertDescription className="text-green-700">{success}</AlertDescription>
+                <Alert variant="default" className="border-green-500 text-green-700">
+                    <CheckCircle2 className="h-4 w-4" />
+                    <AlertTitle>Sucesso</AlertTitle>
+                    <AlertDescription>{success}</AlertDescription>
                 </Alert>
             )}
-        </>
+        </div>
     );
 }

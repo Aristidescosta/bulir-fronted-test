@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import {
     Card,
@@ -8,47 +9,50 @@ import {
     CardDescription,
     CardFooter,
     CardHeader,
-    CardTitle
+    CardTitle,
 } from '@/components/ui/card';
 import { RegisterTabs } from './components/RegisterTabs';
 import { RegisterForm } from './components/RegisterForm';
-import { RegisterAlerts } from './components/RegisterAlerts';
-import { EUserType, IFormData } from '@/types/UserType';
+import { EUserType } from '@/types/UserType';
+import { RegisterFormData } from '@/app/shared/schemas';
+import { useAuth } from '@/context/AuthContext';
+import { AxiosError } from 'axios';
+import { toast } from 'sonner';
+import { showApiErrors } from '@/utils/helpers';
+
+interface ApiErrorResponse {
+    message?: string;
+    errors?: {
+        body?: Record<string, string>;
+    };
+}
 
 export default function RegisterPage() {
     const [userType, setUserType] = useState<EUserType>(EUserType.CUSTOMER);
-    const [formData, setFormData] = useState<IFormData>({
-        nome: '',
-        email: '',
-        telefone: '',
-        password: '',
-        confirmPassword: '',
-    });
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
+    const { register } = useAuth();
 
-    const handleChange = (field: keyof IFormData, value: string) => {
-        setFormData((prev) => ({ ...prev, [field]: value }));
-        setError('');
-    };
+    const handleSubmit = async (data: RegisterFormData) => {
+        setLoading(true);
+        try {
+            await register({ type: userType, ...data });
+            toast.success('Conta criada com sucesso! 👋');
+        } catch (error: unknown) {
+            const err = error as AxiosError<any>;
 
-    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        setError('');
-        setSuccess('');
-
-        if (formData.password !== formData.confirmPassword) {
-            setError('As senhas não coincidem');
-            return;
+            const errors = err.response?.data?.errors;
+            if (errors && (typeof errors === 'object')) {
+                if (errors) showApiErrors(errors);
+            }
+            else if (err.response?.data?.message) {
+                toast.error(err.response?.data?.message)
+            }
+            else {
+                toast.error("Houve um erro interno, tente novamente mais tarde!")
+            }
+        } finally {
+            setLoading(false);
         }
-
-        if (formData.password.length < 6) {
-            setError('A senha deve ter pelo menos 6 caracteres');
-            return;
-        }
-
-        console.log('DATA:', { userType, ...formData });
     };
 
     return (
@@ -62,15 +66,8 @@ export default function RegisterPage() {
                 </CardHeader>
 
                 <CardContent>
-                    <RegisterAlerts error={error} success={success} />
                     <RegisterTabs userType={userType} onChange={setUserType} />
-                    <RegisterForm
-                        formData={formData}
-                        loading={loading}
-                        userType={userType}
-                        onChange={handleChange}
-                        onSubmit={handleSubmit}
-                    />
+                    <RegisterForm loading={loading} userType={userType} onSubmit={handleSubmit} />
                 </CardContent>
 
                 <CardFooter className="flex flex-col space-y-2">
