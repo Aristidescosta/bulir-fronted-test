@@ -48,9 +48,9 @@ export const bookingService = {
     },
 
     // GET /bookings/:id (detalhes de uma reserva)
-    getBookingById: async (id: string): Promise<IBooking> => {
-        const response = await api.get(`/bookings/${id}`);
-        return response.data;
+    getBookingById: async (id: string): Promise<IBookingWithDetails> => {
+        const response = await api.get(`/booking/${id}`);
+        return response.data?.data;
     },
 
 

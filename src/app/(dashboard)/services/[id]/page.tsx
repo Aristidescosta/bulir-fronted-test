@@ -33,7 +33,7 @@ export default function ServiceDetailPage() {
         try {
             setLoading(true);
             const data = await serviceService.getServiceById(id);
-            setService(data.data);
+            setService(data);
         } catch (error) {
             console.error('Erro ao carregar serviço:', error);
             router.push('/services');
