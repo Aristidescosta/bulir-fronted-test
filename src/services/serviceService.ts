@@ -18,9 +18,9 @@ export const serviceService = {
         return response.data;
     },
 
-    getServiceById: async (id: string): Promise<IApiResponse<IService>> => {
+    getServiceById: async (id: string): Promise<IService> => {
         const response = await api.get(`/services/${id}`);
-        return response.data;
+        return response.data?.data;
     },
 
     getMyServices: async (): Promise<IApiResponse<IService[]>> => {

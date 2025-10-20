@@ -32,7 +32,7 @@ import { useAuth } from '@/context/AuthContext';
 import { AxiosError } from 'axios';
 import { showApiErrors } from '@/utils/helpers';
 
-interface IServiceForm extends Omit<ICreateServiceDTO, 'provider_id'> { }
+export interface IServiceForm extends Omit<ICreateServiceDTO, 'provider_id'> { }
 
 export default function NewServicePage() {
     const router = useRouter();
@@ -46,17 +46,6 @@ export default function NewServicePage() {
         duration: 0,
         price: 0,
     });
-
-    const categories = [
-        'Limpeza',
-        'Manutenção',
-        'Beleza',
-        'Educação',
-        'Tecnologia',
-        'Saúde',
-        'Transporte',
-        'Outros',
-    ];
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
