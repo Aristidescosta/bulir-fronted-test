@@ -11,6 +11,7 @@ import {
     Package,
     User,
     LucideIcon,
+    Wallet,
 } from 'lucide-react';
 import React from 'react';
 
@@ -28,6 +29,7 @@ export default function Sidebar() {
     const clientLinks: ILink[] = [
         { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/services', label: 'Explorar Serviços', icon: Search },
+        { href: '/wallet', label: 'Carteira', icon: Wallet },
         { href: '/bookings', label: 'Minhas Reservas', icon: Calendar },
         { href: '/profile', label: 'Perfil', icon: User },
     ];
@@ -36,6 +38,7 @@ export default function Sidebar() {
         { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/my-services', label: 'Meus Serviços', icon: Package },
         { href: '/bookings', label: 'Agenda', icon: Calendar },
+        { href: '/wallet', label: 'Carteira', icon: Wallet },
         { href: '/services', label: 'Explorar Serviços', icon: Search },
         { href: '/profile', label: 'Perfil', icon: User },
     ];

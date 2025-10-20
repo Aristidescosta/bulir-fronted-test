@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import { bookingService } from '@/services/bookingService';
 import {
     Dialog,
@@ -15,10 +15,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Calendar, Clock, Loader2 } from 'lucide-react';
+import { AlertTriangle, Calendar, Clock, Loader2, Wallet } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatters';
 import { useAuth } from '@/context/AuthContext';
 import { IService } from '@/types/service';
+import { walletService } from '@/services/walletService';
+import Link from 'next/link';
+import { toast } from 'sonner';
 
 // Tipos auxiliares
 interface IProvider {
@@ -49,12 +52,34 @@ export default function BookingModal({
 }: IBookingModalProps) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [checkingBalance, setCheckingBalance] = useState(true);
+    const [balance, setBalance] = useState(0);
+    const [hasSufficientBalance, setHasSufficientBalance] = useState(false);
     const { user } = useAuth();
     const [formData, setFormData] = useState<IFormData>({
         data_reserva: '',
         hora_inicio: '',
     });
 
+    useEffect(() => {
+        if (isOpen) {
+            checkBalance();
+        }
+    }, [isOpen, service]);
+
+    const checkBalance = async () => {
+        try {
+            setCheckingBalance(true);
+            const data = await walletService.getBalance();
+            setBalance(data.data.balance);
+            setHasSufficientBalance(data.data.balance >= service.price);
+        } catch (err) {
+            console.error('Erro ao verificar saldo:', err);
+            setError('Erro ao verificar saldo');
+        } finally {
+            setCheckingBalance(false);
+        }
+    };
 
     const generateTimeSlots = (): string[] => {
         const slots: string[] = [];
@@ -69,7 +94,6 @@ export default function BookingModal({
 
     const timeSlots = generateTimeSlots();
 
-    // Data mínima = amanhã
     const getMinDate = (): string => {
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
@@ -115,13 +139,47 @@ export default function BookingModal({
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    {error && (
-                        <Alert variant="destructive">
-                            <AlertDescription>{error}</AlertDescription>
-                        </Alert>
-                    )}
+                    <div className={`rounded-lg p-4 ${hasSufficientBalance
+                        ? 'bg-green-50 border border-green-200'
+                        : 'bg-red-50 border border-red-200'
+                        }`}>
+                        <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                                <Wallet className={`h-4 w-4 ${hasSufficientBalance ? 'text-green-600' : 'text-red-600'
+                                    }`} />
+                                <span className={`text-sm font-medium ${hasSufficientBalance ? 'text-green-900' : 'text-red-900'
+                                    }`}>
+                                    Seu Saldo
+                                </span>
+                            </div>
+                            <span className={`font-bold ${hasSufficientBalance ? 'text-green-900' : 'text-red-900'
+                                }`}>
+                                {formatCurrency(balance)}
+                            </span>
+                        </div>
 
-                    {/* Data */}
+                        {!hasSufficientBalance && (
+                            <div className="flex items-start gap-2 mt-3 pt-3 border-t border-red-300">
+                                <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+                                <div className="text-sm text-red-800">
+                                    <p className="font-medium mb-1">Saldo insuficiente</p>
+                                    <p>
+                                        Você precisa de {formatCurrency(service.price - balance)} a mais.
+                                    </p>
+                                    <Button
+                                        asChild
+                                        variant="link"
+                                        className="h-auto p-0 text-red-700 font-medium"
+                                    >
+                                        <Link href="/wallet/recharge" onClick={onClose}>
+                                            Adicionar crédito →
+                                        </Link>
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
                     <div className="space-y-2">
                         <Label htmlFor="data_reserva">
                             <Calendar className="inline h-4 w-4 mr-2" />
@@ -165,7 +223,6 @@ export default function BookingModal({
                         </select>
                     </div>
 
-                    {/* Resumo */}
                     <div className="rounded-lg bg-muted p-4 space-y-2">
                         <h4 className="font-semibold text-sm">Resumo da Reserva</h4>
                         <div className="text-sm space-y-1">
@@ -179,7 +236,7 @@ export default function BookingModal({
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Provedor:</span>
-                                <span>{service.provider_id}</span>
+                                <span>{service.provider?.name}</span>
                             </div>
                             <div className="flex justify-between font-semibold pt-2 border-t">
                                 <span>Total:</span>
@@ -192,7 +249,7 @@ export default function BookingModal({
                         <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
                             Cancelar
                         </Button>
-                        <Button type="submit" disabled={loading}>
+                        <Button type="submit" disabled={loading || !hasSufficientBalance}>
                             {loading ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
