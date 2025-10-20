@@ -5,9 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { bookingService } from '@/services/bookingService';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -18,42 +16,23 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Calendar, Clock, User, DollarSign, Package, Search, Filter } from 'lucide-react';
+import { Calendar, Search } from 'lucide-react';
 import Link from 'next/link';
-import { formatCurrency, formatDate, formatTime } from '@/utils/formatters';
 import { toast } from 'sonner';
-/* import CancelBookingDialog from '@/components/bookings/CancelBookingDialog';
-import ConfirmBookingDialog from '@/components/bookings/ConfirmBookingDialog';
- */import { EBookingStatus, ECancelledBy, IBookingWithDetails } from '@/types/booking';
+import { EBookingStatus, IBookingWithDetails } from '@/types/booking';
+import CancelBookingDialog from '@/components/custom/bookings/CancelBookingDialog';
+import { BookingCard } from '@/components/custom/bookings/BookingCard';
+import { BookingsPageSkeleton } from '@/components/custom/bookings/BookingsPageSkeleton';
 
 type TabValue = 'all' | 'pendente' | 'confirmada' | 'cancelada' | 'concluida';
-
-interface Servico {
-    nome: string;
-    categoria: string;
-}
-
-interface Usuario {
-    nome: string;
-}
-
 
 interface DialogState {
     open: boolean;
     bookingId: string | null;
 }
 
-interface BookingCardProps {
-    booking: IBookingWithDetails;
-    isProvider: boolean;
-    onConfirm: () => void;
-    onCancel: () => void;
-    getStatusColor: (status: EBookingStatus) => string;
-    getStatusLabel: (status: EBookingStatus) => string;
-}
-
 export default function BookingsPage() {
-    const { user, isProvider } = useAuth();
+    const { isProvider } = useAuth();
     const [bookings, setBookings] = useState<IBookingWithDetails[]>([]);
     const [filteredBookings, setFilteredBookings] = useState<IBookingWithDetails[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -99,7 +78,6 @@ export default function BookingsPage() {
                 filtered = filtered.filter((b) => b.status === EBookingStatus.COMPLETED);
                 break;
             default:
-                // all - sem filtro
                 break;
         }
 
@@ -145,7 +123,6 @@ export default function BookingsPage() {
         return labels[status] || status;
     };
 
-    // Calcular estatísticas
     const stats = {
         total: bookings.length,
         pendente: bookings.filter((b) => b.status === EBookingStatus.PENDING).length,
@@ -160,7 +137,6 @@ export default function BookingsPage() {
 
     return (
         <div className="space-y-6">
-            {/* Header */}
             <div>
                 <h1 className="text-3xl font-bold">
                     {isProvider() ? 'Agenda de Reservas' : 'Minhas Reservas'}
@@ -206,7 +182,6 @@ export default function BookingsPage() {
                 </Card>
             </div>
 
-            {/* Tabs and Bookings List */}
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center justify-between">
@@ -270,7 +245,6 @@ export default function BookingsPage() {
                 </CardContent>
             </Card>
 
-            {/* Confirm Dialog */}
             <AlertDialog
                 open={confirmDialog.open}
                 onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}
@@ -291,131 +265,14 @@ export default function BookingsPage() {
                 </AlertDialogContent>
             </AlertDialog>
 
-            {/* {cancelDialog.open && cancelDialog.bookingId && (
+            {cancelDialog.open && cancelDialog.bookingId && (
                 <CancelBookingDialog
                     bookingId={cancelDialog.bookingId}
                     isOpen={cancelDialog.open}
                     onClose={() => setCancelDialog({ open: false, bookingId: null })}
                     onSuccess={handleCancelSuccess}
                 />
-            )} */}
-        </div>
-    );
-}
-
-// Booking Card Component
-function BookingCard({ booking, isProvider, onConfirm, onCancel, getStatusColor, getStatusLabel }: BookingCardProps) {
-    const isPast = new Date(booking.booking_date) < new Date();
-    const canCancel = !isPast && (booking.status === EBookingStatus.PENDING || booking.status === EBookingStatus.CONFIRMED);
-    const canConfirm = isProvider && booking.status === EBookingStatus.PENDING;
-
-    return (
-        <div className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-            <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-semibold text-lg">{booking.service.name}</h3>
-                        <Badge className={getStatusColor(booking.status)}>
-                            {getStatusLabel(booking.status)}
-                        </Badge>
-                    </div>
-
-                    <div className="grid gap-2 text-sm text-muted-foreground">
-                        {/* Data e Hora */}
-                        <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4" />
-                            <span>{formatDate(booking.booking_date)}</span>
-                            <Clock className="h-4 w-4 ml-2" />
-                            <span>{formatTime(booking.start_time)}</span>
-                        </div>
-
-                        {/* Cliente ou Provedor */}
-                        <div className="flex items-center gap-2">
-                            <User className="h-4 w-4" />
-                            <span>
-                                {isProvider
-                                    ? `Cliente: ${booking.customer?.name}`
-                                    : `Provedor: ${booking.provider.name}`}
-                            </span>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                            <Package className="h-4 w-4" />
-                            <span>{booking.service.category}</span>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                            <DollarSign className="h-4 w-4" />
-                            <span className="font-semibold text-blue-600">
-                                {formatCurrency(booking.total_price)}
-                            </span>
-                        </div>
-
-                        {booking.status === EBookingStatus.CANCELLED && booking.cancellation_reason && (
-                            <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-red-700">
-                                <p className="text-xs font-semibold mb-1">Motivo do cancelamento:</p>
-                                <p className="text-xs">{booking.cancellation_reason}</p>
-                                <p className="text-xs mt-1">
-                                    Cancelado por: {booking.cancelled_by === ECancelledBy.CUSTOMER ? 'Cliente' : 'Provedor'}
-                                </p>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                <div className="flex flex-col gap-2 ml-4">
-                    <Button asChild variant="outline" size="sm">
-                        <Link href={`/bookings/${booking.id}`}>Ver Detalhes</Link>
-                    </Button>
-
-                    {canConfirm && (
-                        <Button onClick={onConfirm} size="sm">
-                            Confirmar
-                        </Button>
-                    )}
-
-                    {canCancel && (
-                        <Button onClick={onCancel} variant="destructive" size="sm">
-                            Cancelar
-                        </Button>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
-}
-
-// Loading Skeleton
-function BookingsPageSkeleton() {
-    return (
-        <div className="space-y-6">
-            <div>
-                <Skeleton className="h-8 w-64 mb-2" />
-                <Skeleton className="h-4 w-48" />
-            </div>
-            <div className="grid gap-4 md:grid-cols-5">
-                {[1, 2, 3, 4, 5].map((i) => (
-                    <Card key={i}>
-                        <CardHeader className="pb-2">
-                            <Skeleton className="h-4 w-20 mb-2" />
-                            <Skeleton className="h-8 w-12" />
-                        </CardHeader>
-                    </Card>
-                ))}
-            </div>
-            <Card>
-                <CardHeader>
-                    <Skeleton className="h-6 w-48" />
-                </CardHeader>
-                <CardContent>
-                    <Skeleton className="h-10 w-full mb-6" />
-                    <div className="space-y-4">
-                        {[1, 2, 3].map((i) => (
-                            <Skeleton key={i} className="h-32 w-full" />
-                        ))}
-                    </div>
-                </CardContent>
-            </Card>
+            )}
         </div>
     );
 }
