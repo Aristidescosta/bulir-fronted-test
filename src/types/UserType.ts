@@ -15,12 +15,18 @@ export interface IUser {
     id: string;
     name: string;
     email: string;
-    phone?: string;
-    type: EUserType
-    nif?: string;
-    status?: string;
-    created_at?: string;
-    updated_at?: string;
+    nif: string;
+    phone?: string | null | undefined;
+    type: EUserType;
+    status: EUserStatus;
+    created_at: Date;
+    updated_at: Date;
+}
+
+export enum EUserStatus {
+    ACTIVE = 'ACTIVE',
+    INACTIVE = 'INACTIVE',
+    SUSPENDED = 'SUSPENDED',
 }
 
 export interface IRegisterData {

@@ -55,9 +55,7 @@ export default function BookingModal({
         hora_inicio: '',
     });
 
-    console.log("SERVICE: ", service)
 
-    // Gera intervalos de horário (08:00 → 18:00)
     const generateTimeSlots = (): string[] => {
         const slots: string[] = [];
         for (let hour = 8; hour <= 18; hour++) {

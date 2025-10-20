@@ -29,7 +29,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     useEffect(() => {
         const loadUser = () => {
             const storedUser = authService.getUser();
-            console.log("USER AQUI: ", storedUser);
             setUser(storedUser);
             setLoading(false);
         };

@@ -2,6 +2,7 @@
 
 import api from '@/lib/api';
 import { IAuthResponse, ILoginData, IRegisterData, IUser } from '@/types/UserType';
+import { IApiResponse } from './bookingService';
 
 export const authService = {
     register: async (userData: IRegisterData): Promise<IUser> => {
@@ -11,7 +12,6 @@ export const authService = {
 
     login: async (credentials: ILoginData): Promise<IAuthResponse> => {
         const response = await api.post<IAuthResponse>('/auth/login', credentials);
-        console.log("RESPONSE LOGIN", response);
         if (response.data.data) {
             localStorage.setItem('token', response.data.data.token);
             localStorage.setItem('user', JSON.stringify(response.data.data.user));
@@ -25,8 +25,8 @@ export const authService = {
         localStorage.removeItem('user');
     },
 
-    getCurrentUser: async (): Promise<IUser> => {
-        const response = await api.get<IUser>('/auth/me');
+    getCurrentUser: async (): Promise<IApiResponse<IUser>> => {
+        const response = await api.get('/auth/me');
         return response.data;
     },
 
@@ -36,7 +36,6 @@ export const authService = {
     },
 
     getUser: (): IUser | null => {
-        console.log("WINDOW: ", window)
         if (typeof window === 'undefined') return null;
         const user = localStorage.getItem('user');
         return user ? (JSON.parse(user) as IUser) : null;

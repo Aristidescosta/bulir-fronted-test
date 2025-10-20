@@ -59,7 +59,6 @@ export default function ServicesPage() {
             const data = await serviceService.getAllServices();
             setServices(data.data);
             setFilteredServices(data.data);
-            console.log("SERVICES: ", data)
         } catch (error) {
             console.error('Erro ao carregar serviços:', error);
         } finally {

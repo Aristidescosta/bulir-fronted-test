@@ -51,7 +51,6 @@ export default function DashboardPage() {
             setLoading(true);
             const bookingsData = await bookingService.getMyBookings({ limit: 5 });
 
-            console.log("RESPONSE: ", bookingsData)
             setRecentBookings(bookingsData.data);
 
             const activeBookings = bookingsData.data?.filter(
