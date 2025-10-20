@@ -22,18 +22,8 @@ import {
 import Link from 'next/link';
 import ProviderDashboard from './ProviderDashboard';
 import { formatCurrency, formatDate, formatTime } from '@/utils/formatters';
-
-
-// Tipos
-interface IBooking {
-    id: string;
-    status: 'PENDENTE' | 'CONFIRMADA' | 'CANCELADA' | 'CONCLUIDA';
-    valor_total: number;
-    data_reserva: string;
-    hora_inicio: string;
-    servico?: { nome: string };
-    provedor?: { nome: string };
-}
+import { bookingService } from '@/services/bookingService';
+import { EBookingStatus, IBookingWithDetails } from '@/types/booking';
 
 interface IStats {
     activeBookings: number;
@@ -43,13 +33,13 @@ interface IStats {
 }
 
 interface IStatusBadgeProps {
-    status: IBooking['status'];
+    status: IBookingWithDetails['status'];
 }
 
 export default function DashboardPage() {
     const { user, isProvider } = useAuth();
     const [stats, setStats] = useState<IStats | null>(null);
-    const [recentBookings, setRecentBookings] = useState<IBooking[]>([]);
+    const [recentBookings, setRecentBookings] = useState<IBookingWithDetails[]>([]);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -57,34 +47,37 @@ export default function DashboardPage() {
     }, []);
 
     const loadDashboardData = async () => {
-        /* try {
+        try {
             setLoading(true);
             const bookingsData = await bookingService.getMyBookings({ limit: 5 });
 
-            setRecentBookings(bookingsData);
+            console.log("RESPONSE: ", bookingsData)
+            setRecentBookings(bookingsData.data);
 
-            const activeBookings = bookingsData.filter(
-                (b: IBooking) => b.status === 'CONFIRMADA' || b.status === 'PENDENTE'
+            const activeBookings = bookingsData.data?.filter(
+                (b: IBookingWithDetails) => b.status === EBookingStatus.CONFIRMED || b.status === EBookingStatus.PENDING
             );
-            const completedBookings = bookingsData.filter(
-                (b: IBooking) => b.status === 'CONCLUIDA'
+
+            const completedBookings = bookingsData.data.filter(
+                (b: IBookingWithDetails) => b.status === EBookingStatus.COMPLETED
             );
+
             const totalSpent = completedBookings.reduce(
-                (sum: number, b: IBooking) => sum + (b.valor_total || 0),
+                (sum: number, b: IBookingWithDetails) => sum + (b.total_price || 0),
                 0
             );
 
             setStats({
                 activeBookings: activeBookings.length,
                 completedBookings: completedBookings.length,
-                pendingBookings: bookingsData.filter((b) => b.status === 'PENDENTE').length,
+                pendingBookings: bookingsData.data.filter((b) => b.status === EBookingStatus.PENDING).length,
                 totalSpent,
             });
         } catch (error) {
             console.error('Erro ao carregar dashboard:', error);
         } finally {
             setLoading(false);
-        } */
+        }
     };
 
     if (isProvider()) {
@@ -159,18 +152,18 @@ export default function DashboardPage() {
                                 >
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <h4 className="font-semibold">{booking.servico?.nome}</h4>
+                                            <h4 className="font-semibold">Reserva para {booking.service.name}</h4>
                                             <StatusBadge status={booking.status} />
                                         </div>
                                         <p className="text-sm text-muted-foreground">
-                                            {formatDate(booking.data_reserva)} às {formatTime(booking.hora_inicio)}
+                                            Data: {formatDate(booking.booking_date)} às {formatTime(booking.start_time)}
                                         </p>
                                         <p className="text-sm text-muted-foreground">
-                                            Provedor: {booking.provedor?.nome}
+                                            Provedor: {booking.provider.name}
                                         </p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="font-semibold">{formatCurrency(booking.valor_total)}</p>
+                                        <p className="font-semibold">{formatCurrency(booking.total_price)}</p>
                                         <Button asChild variant="outline" size="sm" className="mt-2">
                                             <Link href={`/bookings/${booking.id}`}>Detalhes</Link>
                                         </Button>
@@ -223,16 +216,16 @@ const StatCard = ({
 
 const StatusBadge = ({ status }: IStatusBadgeProps) => {
     const variants: Record<
-        IBooking['status'],
+        IBookingWithDetails['status'],
         { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }
     > = {
-        PENDENTE: { label: 'Pendente', variant: 'secondary' },
-        CONFIRMADA: { label: 'Confirmada', variant: 'default' },
-        CANCELADA: { label: 'Cancelada', variant: 'destructive' },
-        CONCLUIDA: { label: 'Concluída', variant: 'outline' },
+        PENDING: { label: 'Pendente', variant: 'secondary' },
+        CONFIRMED: { label: 'Confirmada', variant: 'default' },
+        COMPLETED: { label: 'Concluída', variant: 'default' },
+        CANCELLED: { label: 'Cancelada', variant: 'destructive' },
     };
 
-    const { label, variant } = variants[status] ?? variants.PENDENTE;
+    const { label, variant } = variants[status] ?? variants.PENDING;
 
     return <Badge variant={variant}>{label}</Badge>;
 };
