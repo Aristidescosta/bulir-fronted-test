@@ -9,6 +9,11 @@ export interface IService {
     status: EServiceStatus;
     created_at: Date;
     updated_at: Date;
+    provider?: {
+        name: string;
+        email: string;
+        phone: string;
+    }
 }
 
 export enum EServiceCategory {

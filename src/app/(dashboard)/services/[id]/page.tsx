@@ -110,13 +110,13 @@ export default function ServiceDetailPage() {
                                     <h3 className="font-semibold mb-3">Prestador do Serviço</h3>
                                     <div className="flex items-center gap-4">
                                         <Avatar className="h-12 w-12">
-                                            <AvatarFallback>{getInitials(service.provider_id)}</AvatarFallback>
+                                            <AvatarFallback>{getInitials(service.provider?.name)}</AvatarFallback>
                                         </Avatar>
                                         <div>
-                                            <p className="font-medium">{service.provider_id}</p>
-                                            <p className="text-sm text-muted-foreground">{service.provider_id}</p>
-                                            {service.provider_id && (
-                                                <p className="text-sm text-muted-foreground">{service.provider_id}</p>
+                                            <p className="font-medium">{service.provider?.name}</p>
+                                            <p className="text-sm text-muted-foreground">{service.provider?.email}</p>
+                                            {service.provider?.phone && (
+                                                <p className="text-sm text-muted-foreground">{service.provider?.phone}</p>
                                             )}
                                         </div>
                                     </div>
