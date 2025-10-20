@@ -15,9 +15,12 @@ export interface IUser {
     id: string;
     name: string;
     email: string;
-    telefone?: string;
+    phone?: string;
+    type: EUserType
     nif?: string;
-    role?: string;
+    status?: string;
+    created_at?: string;
+    updated_at?: string;
 }
 
 export interface IRegisterData {
@@ -35,6 +38,11 @@ export interface ILoginData {
 }
 
 export interface IAuthResponse {
-    token: string;
-    user: IUser;
+    success: boolean;
+    message: string;
+    data: {
+        user: IUser;
+        token: string;
+        refreshToken: string
+    }
 }

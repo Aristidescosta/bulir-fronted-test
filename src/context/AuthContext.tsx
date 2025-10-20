@@ -2,7 +2,7 @@
 
 import { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { IAuthResponse, ILoginData, IRegisterData, IUser } from '@/types/UserType';
+import { EUserType, IAuthResponse, ILoginData, IRegisterData, IUser } from '@/types/UserType';
 import { authService } from '@/services/authService';
 
 interface AuthContextType {
@@ -11,6 +11,8 @@ interface AuthContextType {
     login: (credentials: ILoginData) => Promise<IAuthResponse>;
     register: (userData: IRegisterData) => Promise<IUser>;
     logout: () => void;
+    isProvider: () => boolean;
+    isClient: () => boolean
 }
 
 interface AuthProviderProps {
@@ -27,6 +29,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     useEffect(() => {
         const loadUser = () => {
             const storedUser = authService.getUser();
+            console.log("USER AQUI: ", storedUser);
             setUser(storedUser);
             setLoading(false);
         };
@@ -36,9 +39,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const login = async (credentials: ILoginData): Promise<IAuthResponse> => {
         try {
             const data = await authService.login(credentials);
-            setUser(data.user);
+            setUser(data.data.user);
 
-            document.cookie = `token=${data.token}; path=/; max-age=86400`;
+            document.cookie = `token=${data.data.token}; path=/; max-age=86400`;
 
             router.push('/dashboard');
             return data;
@@ -57,6 +60,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         }
     };
 
+    const isProvider = () => user?.type === EUserType.PROVIDER;
+    const isClient = () => user?.type === EUserType.CUSTOMER;
+
     const logout = (): void => {
         authService.logout();
         document.cookie = 'token=; path=/; max-age=0';
@@ -65,7 +71,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+        <AuthContext.Provider value={{
+            user,
+            loading,
+            login,
+            register,
+            logout,
+            isProvider,
+            isClient
+        }}>
             {children}
         </AuthContext.Provider>
     );
