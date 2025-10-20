@@ -52,7 +52,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const register = async (userData: IRegisterData): Promise<IUser> => {
         try {
             const data = await authService.register(userData);
-            router.push('/login');
+            /* router.push('/login'); */
             return data;
         } catch (error) {
             throw error;
