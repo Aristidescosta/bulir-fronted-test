@@ -67,7 +67,7 @@ export const bookingService = {
 
     // PATCH /bookings/:id/cancel (cancelar reserva)
     cancelBooking: async (id: string, cancelData?: ICancelBookingDTO): Promise<IBooking> => {
-        const response = await api.patch(`/bookings/${id}/cancel`, cancelData);
+        const response = await api.patch(`/booking/${id}/cancel`, cancelData);
         return response.data;
     },
 

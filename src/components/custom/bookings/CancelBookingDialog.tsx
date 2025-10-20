@@ -45,7 +45,7 @@ export default function CancelBookingDialog({
 
         try {
             setLoading(true);
-            await bookingService.cancelBooking(bookingId, { motivo });
+            await bookingService.cancelBooking(bookingId, { cancellation_reason: motivo });
             toast.success('Reserva cancelada com sucesso');
             onSuccess();
         } catch (err: any) {
