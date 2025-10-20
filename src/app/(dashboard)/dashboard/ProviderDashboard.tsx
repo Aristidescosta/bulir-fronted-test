@@ -8,26 +8,10 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar, DollarSign, Package, TrendingUp, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { formatCurrency, formatDate, formatTime } from '@/utils/formatters';
-
-// Tipos esperados
-interface IService {
-    id: string;
-    nome: string;
-    categoria: string;
-    preco: number;
-    status: 'ATIVO' | 'INATIVO';
-}
-
-interface IBooking {
-    id: string;
-    servico: { nome: string };
-    cliente: { nome: string };
-    data_reserva: string;
-    hora_inicio: string;
-    valor_total: number;
-    status: 'PENDENTE' | 'CONFIRMADA' | 'CANCELADA' | 'CONCLUIDA';
-    data_criacao: string;
-}
+import { bookingService } from '@/services/bookingService';
+import { serviceService } from '@/services/serviceService';
+import { EBookingStatus, IBookingWithDetails } from '@/types/booking';
+import { EServiceStatus, IService } from '@/types/service';
 
 interface IStats {
     totalServices: number;
@@ -41,7 +25,7 @@ interface IStats {
 export default function ProviderDashboard() {
     const { user } = useAuth();
     const [stats, setStats] = useState<IStats | null>(null);
-    const [recentBookings, setRecentBookings] = useState<IBooking[]>([]);
+    const [recentBookings, setRecentBookings] = useState<IBookingWithDetails[]>([]);
     const [services, setServices] = useState<IService[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -50,7 +34,7 @@ export default function ProviderDashboard() {
     }, []);
 
     const loadDashboardData = async () => {
-        /* try {
+        try {
             setLoading(true);
 
             // Buscar reservas e serviços
@@ -59,30 +43,30 @@ export default function ProviderDashboard() {
                 serviceService.getMyServices(),
             ]);
 
-            setRecentBookings(bookingsData);
-            setServices(servicesData);
+            setRecentBookings(bookingsData.data);
+            setServices(servicesData.data);
 
             // Calcular estatísticas
             const thisMonth = new Date();
             thisMonth.setDate(1);
 
-            const monthlyBookings = bookingsData.filter(
-                (b: IBooking) => new Date(b.data_criacao) >= thisMonth
+            const monthlyBookings = bookingsData.data.filter(
+                (b: IBookingWithDetails) => new Date(b.booking_date) >= thisMonth
             );
 
-            const completedBookings = bookingsData.filter((b: IBooking) => b.status === 'CONCLUIDA');
+            const completedBookings = bookingsData.data.filter((b: IBookingWithDetails) => b.status === EBookingStatus.CONFIRMED);
             const monthlyRevenue = monthlyBookings
-                .filter((b: IBooking) => b.status === 'CONCLUIDA')
-                .reduce((sum, b) => sum + (b.valor_total || 0), 0);
+                .filter((b: IBookingWithDetails) => b.status === EBookingStatus.COMPLETED)
+                .reduce((sum, b) => sum + (b.total_price || 0), 0);
 
             setStats({
-                totalServices: servicesData.length,
-                activeServices: servicesData.filter((s: IService) => s.status === 'ATIVO').length,
+                totalServices: servicesData.data.length,
+                activeServices: servicesData.data.filter((s: IService) => s.status === EServiceStatus.ACTIVE).length,
                 monthlyBookings: monthlyBookings.length,
-                pendingBookings: bookingsData.filter((b: IBooking) => b.status === 'PENDENTE').length,
+                pendingBookings: bookingsData.data.filter((b: IBookingWithDetails) => b.status === EBookingStatus.PENDING).length,
                 monthlyRevenue,
                 totalRevenue: completedBookings.reduce(
-                    (sum, b) => sum + (b.valor_total || 0),
+                    (sum, b) => sum + (b.total_price || 0),
                     0
                 ),
             });
@@ -90,7 +74,7 @@ export default function ProviderDashboard() {
             console.error('Erro ao carregar dashboard:', error);
         } finally {
             setLoading(false);
-        } */
+        }
     };
 
     if (loading) {
@@ -169,19 +153,19 @@ export default function ProviderDashboard() {
                                 >
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <h4 className="font-semibold">{booking.servico?.nome}</h4>
+                                            <h4 className="font-semibold">{booking.service?.name}</h4>
                                             <StatusBadge status={booking.status} />
                                         </div>
                                         <p className="text-sm text-muted-foreground">
-                                            Cliente: {booking.cliente?.nome}
+                                            Cliente: {booking.customer?.name}
                                         </p>
                                         <p className="text-sm text-muted-foreground">
-                                            {formatDate(booking.data_reserva)} às {formatTime(booking.hora_inicio)}
+                                            {formatDate(booking.booking_date)} às {formatTime(booking.start_time)}
                                         </p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="font-semibold">{formatCurrency(booking.valor_total)}</p>
-                                        {booking.status === 'PENDENTE' && (
+                                        <p className="font-semibold">{formatCurrency(booking.total_price)}</p>
+                                        {booking.status === EBookingStatus.PENDING && (
                                             <Button size="sm" className="mt-2">
                                                 Confirmar
                                             </Button>
@@ -223,13 +207,13 @@ export default function ProviderDashboard() {
                             {services.slice(0, 3).map((service) => (
                                 <div key={service.id} className="p-4 border rounded-lg">
                                     <div className="flex items-start justify-between mb-2">
-                                        <h4 className="font-semibold">{service.nome}</h4>
-                                        <Badge variant={service.status === 'ATIVO' ? 'default' : 'secondary'}>
+                                        <h4 className="font-semibold">{service.name}</h4>
+                                        <Badge variant={service.status === EServiceStatus.ACTIVE ? 'default' : 'secondary'}>
                                             {service.status}
                                         </Badge>
                                     </div>
-                                    <p className="text-sm text-muted-foreground mb-2">{service.categoria}</p>
-                                    <p className="font-semibold">{formatCurrency(service.preco)}</p>
+                                    <p className="text-sm text-muted-foreground mb-2">{service.category}</p>
+                                    <p className="font-semibold">{formatCurrency(service.price)}</p>
                                 </div>
                             ))}
                         </div>
@@ -285,15 +269,15 @@ function EmptyState({
     );
 }
 
-function StatusBadge({ status }: { status: IBooking['status'] }) {
+function StatusBadge({ status }: { status: IBookingWithDetails['status'] }) {
     const variants: Record<
-        IBooking['status'],
+        IBookingWithDetails['status'],
         { label: string; variant: 'secondary' | 'default' | 'destructive' | 'outline' }
     > = {
-        PENDENTE: { label: 'Pendente', variant: 'secondary' },
-        CONFIRMADA: { label: 'Confirmada', variant: 'default' },
-        CANCELADA: { label: 'Cancelada', variant: 'destructive' },
-        CONCLUIDA: { label: 'Concluída', variant: 'outline' },
+        PENDING: { label: 'Pendente', variant: 'secondary' },
+        CONFIRMED: { label: 'Confirmada', variant: 'default' },
+        CANCELLED: { label: 'Cancelada', variant: 'destructive' },
+        COMPLETED: { label: 'Concluída', variant: 'outline' },
     };
 
     const { label, variant } = variants[status];
