@@ -39,7 +39,6 @@ import { toast } from 'sonner';
 import { EServiceStatus, IService } from '@/types/service';
 
 
-// Tipagem do estado de exclusão
 interface DeleteDialogState {
   open: boolean;
   serviceId: string | null;
@@ -106,7 +105,6 @@ export default function MyServicesPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Meus Serviços</h1>
@@ -122,7 +120,6 @@ export default function MyServicesPage() {
         </Button>
       </div>
 
-      {/* Stats */}
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
@@ -148,7 +145,6 @@ export default function MyServicesPage() {
         </Card>
       </div>
 
-      {/* Services List */}
       {services.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
@@ -242,7 +238,6 @@ export default function MyServicesPage() {
         </div>
       )}
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog
         open={deleteDialog.open}
         onOpenChange={(open) =>

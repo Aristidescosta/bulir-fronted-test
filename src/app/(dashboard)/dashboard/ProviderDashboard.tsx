@@ -12,6 +12,9 @@ import { bookingService } from '@/services/bookingService';
 import { serviceService } from '@/services/serviceService';
 import { EBookingStatus, IBookingWithDetails } from '@/types/booking';
 import { EServiceStatus, IService } from '@/types/service';
+import { StatCard } from '@/components/custom/dashboard/StatusCard';
+import { StatusBadge } from '@/components/custom/dashboard/StatusBadge';
+import { EmptyState } from '@/components/custom/dashboard/EmptyState';
 
 interface IStats {
     totalServices: number;
@@ -46,7 +49,6 @@ export default function ProviderDashboard() {
             setRecentBookings(bookingsData.data);
             setServices(servicesData.data);
 
-            // Calcular estatísticas
             const thisMonth = new Date();
             thisMonth.setDate(1);
 
@@ -97,35 +99,33 @@ export default function ProviderDashboard() {
                 </Button>
             </div>
 
-            {/* Stats Cards */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <StatCard
                     title="Meus Serviços"
                     icon={<Package className="h-4 w-4 text-muted-foreground" />}
                     value={stats?.totalServices || 0}
-                    subtitle={`${stats?.activeServices || 0} ativos`}
+                    description={`${stats?.activeServices || 0} ativos`}
                 />
                 <StatCard
                     title="Reservas do Mês"
                     icon={<Calendar className="h-4 w-4 text-muted-foreground" />}
                     value={stats?.monthlyBookings || 0}
-                    subtitle={`${stats?.pendingBookings || 0} pendentes`}
+                    description={`${stats?.pendingBookings || 0} pendentes`}
                 />
                 <StatCard
                     title="Receita do Mês"
                     icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
                     value={formatCurrency(stats?.monthlyRevenue || 0)}
-                    subtitle="Serviços concluídos"
+                    description="Serviços concluídos"
                 />
                 <StatCard
                     title="Receita Total"
                     icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
                     value={formatCurrency(stats?.totalRevenue || 0)}
-                    subtitle="Todos os tempos"
+                    description="Todos os tempos"
                 />
             </div>
 
-            {/* Reservas Recentes */}
             <Card>
                 <CardHeader>
                     <div className="flex items-center justify-between">
@@ -178,7 +178,6 @@ export default function ProviderDashboard() {
                 </CardContent>
             </Card>
 
-            {/* Meus Serviços */}
             <Card>
                 <CardHeader>
                     <div className="flex items-center justify-between">
@@ -222,65 +221,4 @@ export default function ProviderDashboard() {
             </Card>
         </div>
     );
-}
-
-/* ---------- Subcomponentes ---------- */
-
-function StatCard({
-    title,
-    icon,
-    value,
-    subtitle,
-}: {
-    title: string;
-    icon: React.ReactNode;
-    value: string | number;
-    subtitle: string;
-}) {
-    return (
-        <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{title}</CardTitle>
-                {icon}
-            </CardHeader>
-            <CardContent>
-                <div className="text-2xl font-bold">{value}</div>
-                <p className="text-xs text-muted-foreground">{subtitle}</p>
-            </CardContent>
-        </Card>
-    );
-}
-
-function EmptyState({
-    icon,
-    message,
-    action,
-}: {
-    icon: React.ReactNode;
-    message: string;
-    action?: React.ReactNode;
-}) {
-    return (
-        <div className="text-center py-8 text-muted-foreground">
-            {icon}
-            <p>{message}</p>
-            {action}
-        </div>
-    );
-}
-
-function StatusBadge({ status }: { status: IBookingWithDetails['status'] }) {
-    const variants: Record<
-        IBookingWithDetails['status'],
-        { label: string; variant: 'secondary' | 'default' | 'destructive' | 'outline' }
-    > = {
-        PENDING: { label: 'Pendente', variant: 'secondary' },
-        CONFIRMED: { label: 'Confirmada', variant: 'default' },
-        CANCELLED: { label: 'Cancelada', variant: 'destructive' },
-        COMPLETED: { label: 'Concluída', variant: 'outline' },
-    };
-
-    const { label, variant } = variants[status];
-
-    return <Badge variant={variant}>{label}</Badge>;
 }

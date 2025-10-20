@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
+
+import { Button } from '@/components/ui/button';
 import {
     Card,
     CardContent,
@@ -9,9 +11,6 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
     Calendar,
     Clock,
@@ -24,16 +23,16 @@ import ProviderDashboard from './ProviderDashboard';
 import { formatCurrency, formatDate, formatTime } from '@/utils/formatters';
 import { bookingService } from '@/services/bookingService';
 import { EBookingStatus, IBookingWithDetails } from '@/types/booking';
+import { DashboardSkeleton } from '@/components/custom/dashboard/DashboardSkeleton';
+import { StatCard } from '@/components/custom/dashboard/StatusCard';
+import { StatusBadge } from '@/components/custom/dashboard/StatusBadge';
+import { QuickAction } from '@/components/custom/dashboard/QuickAction';
 
 interface IStats {
     activeBookings: number;
     completedBookings: number;
     pendingBookings: number;
     totalSpent: number;
-}
-
-interface IStatusBadgeProps {
-    status: IBookingWithDetails['status'];
 }
 
 export default function DashboardPage() {
@@ -187,97 +186,3 @@ export default function DashboardPage() {
         </div>
     );
 }
-
-// ---------- Subcomponentes Tipados ----------
-
-const StatCard = ({
-    title,
-    icon,
-    value,
-    description,
-}: {
-    title: string;
-    icon: React.ReactNode;
-    value: string | number;
-    description: string;
-}) => (
-    <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{title}</CardTitle>
-            {icon}
-        </CardHeader>
-        <CardContent>
-            <div className="text-2xl font-bold">{value}</div>
-            <p className="text-xs text-muted-foreground">{description}</p>
-        </CardContent>
-    </Card>
-);
-
-const StatusBadge = ({ status }: IStatusBadgeProps) => {
-    const variants: Record<
-        IBookingWithDetails['status'],
-        { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }
-    > = {
-        PENDING: { label: 'Pendente', variant: 'secondary' },
-        CONFIRMED: { label: 'Confirmada', variant: 'default' },
-        COMPLETED: { label: 'Concluída', variant: 'default' },
-        CANCELLED: { label: 'Cancelada', variant: 'destructive' },
-    };
-
-    const { label, variant } = variants[status] ?? variants.PENDING;
-
-    return <Badge variant={variant}>{label}</Badge>;
-};
-
-const QuickAction = ({
-    href,
-    icon,
-    label,
-    outline,
-}: {
-    href: string;
-    icon: React.ReactNode;
-    label: string;
-    outline?: boolean;
-}) => (
-    <Button asChild variant={outline ? 'outline' : 'default'} className="h-20">
-        <Link href={href} className="flex flex-col gap-2">
-            {icon}
-            {label}
-        </Link>
-    </Button>
-);
-
-const DashboardSkeleton = () => (
-    <div className="space-y-6">
-        <div>
-            <Skeleton className="h-8 w-64 mb-2" />
-            <Skeleton className="h-4 w-48" />
-        </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {[1, 2, 3, 4].map((i) => (
-                <Card key={i}>
-                    <CardHeader>
-                        <Skeleton className="h-4 w-24" />
-                    </CardHeader>
-                    <CardContent>
-                        <Skeleton className="h-8 w-16 mb-2" />
-                        <Skeleton className="h-3 w-32" />
-                    </CardContent>
-                </Card>
-            ))}
-        </div>
-        <Card>
-            <CardHeader>
-                <Skeleton className="h-6 w-48" />
-            </CardHeader>
-            <CardContent>
-                <div className="space-y-4">
-                    {[1, 2, 3].map((i) => (
-                        <Skeleton key={i} className="h-24 w-full" />
-                    ))}
-                </div>
-            </CardContent>
-        </Card>
-    </div>
-);
