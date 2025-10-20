@@ -1,21 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import api from "@/lib/api";
 import { IApiResponse } from "./bookingService";
-import { IService } from "@/types/service";
+import { ICreateServiceDTO, IService } from "@/types/service";
 
 
 export interface IServiceFilters {
     category?: string;
     search?: string;
     isActive?: boolean;
-    [key: string]: any;
-}
-
-export interface IServicePayload {
-    name: string;
-    description: string;
-    price: number;
-    category: string;
     [key: string]: any;
 }
 
@@ -26,26 +18,23 @@ export const serviceService = {
         return response.data;
     },
 
-    // GET /services/:id (detalhes de um serviço)
     getServiceById: async (id: string): Promise<IApiResponse<IService>> => {
         const response = await api.get(`/services/${id}`);
         return response.data;
     },
 
-    // GET /services/my (serviços do provedor logado)
-    getMyServices: async (): Promise<IService[]> => {
+    getMyServices: async (): Promise<IApiResponse<IService[]>> => {
         const response = await api.get('/services/my');
         return response.data;
     },
 
-    // POST /services (criar serviço - apenas provedor)
-    createService: async (serviceData: IServicePayload): Promise<IService> => {
+    createService: async (serviceData: ICreateServiceDTO): Promise<IService> => {
         const response = await api.post('/services', serviceData);
         return response.data;
     },
 
     // PUT /services/:id (editar serviço)
-    updateService: async (id: string, serviceData: Partial<IServicePayload>): Promise<IService> => {
+    updateService: async (id: string, serviceData: Partial<ICreateServiceDTO>): Promise<IService> => {
         const response = await api.put(`/services/${id}`, serviceData);
         return response.data;
     },

@@ -31,3 +31,12 @@ export enum EServiceStatus {
     ACTIVE = 'ACTIVE',
     INACTIVE = 'INACTIVE',
 }
+
+export interface ICreateServiceDTO {
+    provider_id: string;
+    name: string;
+    description: string;
+    category: EServiceCategory;
+    duration: number;
+    price: number;
+}

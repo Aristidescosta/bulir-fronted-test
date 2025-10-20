@@ -20,13 +20,6 @@ import { AxiosError } from 'axios';
 import { toast } from 'sonner';
 import { showApiErrors } from '@/utils/helpers';
 
-interface ApiErrorResponse {
-    message?: string;
-    errors?: {
-        body?: Record<string, string>;
-    };
-}
-
 export default function RegisterPage() {
     const [userType, setUserType] = useState<EUserType>(EUserType.CUSTOMER);
     const [loading, setLoading] = useState(false);
