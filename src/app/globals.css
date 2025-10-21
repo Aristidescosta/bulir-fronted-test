@@ -120,3 +120,21 @@
     @apply bg-background text-foreground;
   }
 }
+
+@media (max-width: 640px) {
+  .navbar-padding {
+    @apply px-4 py-3;
+  }
+}
+
+@media (max-width: 768px) {
+  .hide-on-mobile {
+    @apply hidden;
+  }
+}
+
+@media (min-width: 769px) {
+  .hide-on-desktop {
+    @apply hidden;
+  }
+}
