@@ -16,6 +16,15 @@ export interface IService {
     }
 }
 
+export interface IServiceForm {
+    name: string;
+    description: string;
+    category: EServiceCategory;
+    duration: number;
+    price: number;
+}
+
+
 export enum EServiceCategory {
     BEAUTY = 'BEAUTY',
     HEALTH = 'HEALTH',
