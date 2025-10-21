@@ -43,3 +43,12 @@ export interface IBookingWithDetails extends IBooking {
         name: string;
     }
 }
+
+export interface IStats {
+    totalServices: number;
+    activeServices: number;
+    monthlyBookings: number;
+    pendingBookings: number;
+    monthlyRevenue: number;
+    totalRevenue: number;
+}
